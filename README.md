@@ -17,7 +17,7 @@
 Transform your complex codebase into an interactive visual map.
 </div>
 
-## 🚀 Key Features
+## Key Features
 
 - **Interactive Codebase Maps**: Visualize your codebase, from high level architecture down to function calls
 - **Click-to-Code Navigation**: Jump directly to important code by clicking nodes and connections
@@ -27,33 +27,33 @@ Transform your complex codebase into an interactive visual map.
 - **Create LLM Prompts**: One-click prompts to provide codebase-wide context to any LLM
 - **Share Diagrams**: Share with other CodeViz users, export Mermaid diagrams for Markdown, and create Draw.io files
 
-## 🔒 Data & Privacy
-- **Privacy-Focused**: Your original code is never stored by us. We only store anonymized vector embeddings that power our search features.
+## Data & Privacy
+- **Privacy-Focused**: Your code is never stored by us.
 
   API Provider Status:
   - ✅ GCP: Zero-day retention
   - ✅ AWS: Zero-day retention 
   - ✅ Anthropic: Zero-day retention
-  - 🔄 OpenAI: Zero-day retention in progress (currently retains some embeddings data for up to 30 days)
 
-- **Optional Telemetry**: Telemetry can be disabled using VS Code user settings, which enables/disables all error reporting and usage data. Collected information directly relates to CodeViz usage, such as error logs, when you open the webview, session replays, and user queries (no prompts or code).
+  All static analysis and embeddings is executed and stored locally.
+
+- **Optional Telemetry**: Telemetry can be disabled under 'Preferences' in extension settings, which enables/disables all error reporting and usage data. Collected information directly relates to CodeViz usage, such as error logs, when you open the webview, session replays, and user queries (no prompts or code).
 - [Privacy Policy](https://www.iubenda.com/privacy-policy/87134644)
 
-## 🛠️ Commands
+## Commands
 
 - `CodeViz: Show Webview` - Launch the main interface
 - `CodeViz: Regenerate Architecture` - Force reload of top-level architecture diagram
-- `CodeViz: Set Custom API Key` - Use your own Anthropic key
 - `CodeViz: Check for Updates` - Manual update check
 - `CodeViz: Disable Auto Updates` - Turn off auto updates (unstable)
 - `CodeViz: Enable Auto Updates` - Turn on auto updates
 
-## 📋 Requirements
+## Requirements
 
 - VS Code 1.60.0+
 - Active internet connection
 
-## 🤝 Support & Community
+## Support & Community
 
 - **Discord**: [Join our community](https://discord.gg/jngcr3tPVY)
 - **Issues**: [GitHub Issue Tracker](https://github.com/EdisonLabs-Inc/CodeViz-Public/issues)
