@@ -1,33 +1,38 @@
 ---
 name: tcdd-test-codereview-driven-development
 description: >-
-  MANDATORY for every non-trivial code change. Execute the complete TCDD
+  Recommended for every non-trivial code change. Execute the complete TCDD
   loop: establish a green test baseline → make the smallest correct code
-  change → add/update tests → get tests green → run Freebuff with Solar
-  Pro 4 → verify and apply sensible review findings → re-test and
-  re-review after review-driven code changes. Never declare DONE unless
-  the final tests are green AND a current-batch Solar Pro 4 Freebuff
+  change → add/update tests → get tests green → run a code review pass →
+  verify and apply sensible review findings → re-test and re-review after
+  review-driven code changes. Freebuff / Solar Pro 4 is the preferred
+  reviewer when set up; fall back to this project's own review tooling
+  (e.g. the `code-review` skill) or a careful self-review when it isn't.
+  Don't declare DONE unless the final tests are green AND a current-batch
   review has completed.
 ---
 
 # TCDD — Test × CodeReview Driven Development
 
-> Installed from https://github.com/hunkim/TCDD (commit fdb86e4, MIT). Helper scripts and templates live next to this file in `scripts/` and `templates/`.
+> Adapted from https://github.com/hunkim/TCDD (commit fdb86e4, MIT). Helper scripts and templates live next to this file in `scripts/` and `templates/`. This copy loosens the upstream Freebuff/Solar Pro 4 hard requirement into a preferred-with-fallback reviewer — see section 7.
 
 TCDD stands for **Test × CodeReview Driven Development**.
 
-For every non-trivial code change, you MUST complete both gates:
+For every non-trivial code change, complete both gates:
 
 ```text
 TEST GATE          REVIEW GATE
-Tests green   AND  Freebuff / Solar Pro 4 complete
+Tests green   AND  Code review pass complete
         \             /
          \           /
               DONE
 ```
 
 **Tests gate code changes.
-Solar Pro 4 review gates DONE.**
+A code review pass gates DONE.** Freebuff / Solar Pro 4 is the preferred
+reviewer; use a fallback reviewer (this project's own review tooling, or a
+disciplined self-review) when Freebuff isn't available rather than leaving
+the change unreviewed indefinitely.
 
 Do not skip either gate.
 
@@ -71,8 +76,9 @@ Execute these steps IN ORDER.
     ↙       ↘
    NO       YES
    ↓         ↓
- FIX      5. FREEBUFF
-   ↑       SOLAR PRO 4 REVIEW
+ FIX      5. CODE REVIEW
+   ↑       (Freebuff/Solar Pro 4
+   │        preferred; fallback OK)
    └─test       ↓
           6. VERIFY FINDINGS
                  ↓
@@ -197,11 +203,35 @@ Passing tests only opens the **review gate**.
 
 ---
 
-# 7. Step 5 — Freebuff / Solar Pro 4 review
+# 7. Step 5 — Code review
 
-Freebuff review is MANDATORY after each completed implementation/fix batch.
+A code review pass is expected after each completed implementation/fix
+batch. **Freebuff with Solar Pro 4 is the preferred reviewer** when it is
+already installed and authenticated in the current environment. When it
+isn't, don't spend the session trying to stand it up (installing a global
+npm package and completing an interactive login isn't realistic in most
+sandboxed/CI/cloud sessions) — use a **fallback reviewer** instead and say
+so in the final report.
 
-The required review model is:
+```text
+Is Freebuff installed AND already authenticated?
+   ↙                              ↘
+ YES                              NO
+  ↓                                ↓
+7.1 Freebuff / Solar Pro 4    7.2 Fallback reviewer
+review (below)                 (below)
+```
+
+---
+
+## 7.1 Freebuff / Solar Pro 4 review (preferred path)
+
+Use this path only when `freebuff --version` already succeeds and Freebuff
+is already logged in (or logging in is a quick, non-blocking step you can
+actually complete here). Do not install Freebuff or attempt `freebuff
+login` just to satisfy this gate — see 7.2 if it isn't already set up.
+
+The preferred review model is:
 
 ```text
 solar-pro4
@@ -213,52 +243,10 @@ or its provider-qualified equivalent:
 upstage/solar-pro4
 ```
 
-Do not silently substitute another model.
+Prefer this model when using Freebuff; don't treat a different model as a
+blocker — fall back to 7.2 instead of fighting the tooling.
 
----
-
-## 7.1 Ensure Freebuff exists
-
-First run:
-
-```bash
-freebuff --version
-```
-
-If Freebuff is unavailable, install it:
-
-```bash
-npm install -g freebuff
-export PATH="$HOME/.local/bin:$PATH"
-freebuff --version
-```
-
-Do not reinstall a working Freebuff installation.
-
----
-
-## 7.2 Ensure authentication
-
-Attempt to use Freebuff.
-
-If authentication is required:
-
-```bash
-freebuff login
-```
-
-Complete the supported authentication flow and retry.
-
-Do not claim that review completed if:
-
-* authentication failed;
-* Freebuff failed to start;
-* the review was interrupted;
-* no usable review result was produced.
-
----
-
-## 7.3 Select Solar Pro 4 (REQUIRED — do this every TCDD review)
+### 7.1.1 Select Solar Pro 4
 
 Freebuff CLI does **not** provide `freebuff config set model` in current installs.
 The real switch is the JSON key **`freebuffModel`**.
@@ -305,13 +293,8 @@ python3 .claude/skills/tcdd-test-codereview-driven-development/scripts/verify_fr
 python3 -c "import json;from pathlib import Path;m=json.loads((Path.home()/'.config/manicode/settings.json').read_text())['freebuffModel'];print(m);assert m in ('upstage/solar-pro4','solar-pro4'), m"
 ```
 
-If verify fails or prints any other model:
-
-**STOP THE REVIEW GATE.**
-
-- Do not start Freebuff.
-- Do not silently use another model.
-- Report the blocker; TCDD is incomplete.
+If verify fails or prints any other model, don't fight it — switch to the
+fallback reviewer in 7.2 instead of blocking on Freebuff setup.
 
 ### Optional UI check
 
@@ -320,13 +303,37 @@ Settings-file verify above is still required.
 
 ---
 
-## 7.4 Review scope
+## 7.2 Fallback reviewer (Freebuff unavailable or not authenticated)
 
-Run Freebuff from the repository root:
+When Freebuff isn't already installed and logged in, don't try to install
+or authenticate it to satisfy this gate. Instead, run whichever of the
+following is available, in this order of preference:
+
+1. **This project's own review skill/tooling**, if one is configured
+   (e.g. a `code-review` or `/code-review` skill, a CI lint/review job,
+   or an equivalent already present in the repo or environment).
+2. **A disciplined self-review pass**, using the same checklist as 7.3/7.4
+   below (correctness, architecture, security, observability,
+   performance, cost, test gaps, error handling, regressions), applied
+   deliberately rather than as a rubber stamp.
+
+Either path satisfies the review gate for this skill. Note in the final
+report (section 16) which reviewer was actually used, and if Freebuff was
+skipped, say so plainly (don't imply Solar Pro 4 reviewed the change when
+it didn't).
+
+---
+
+## 7.3 Review scope
+
+With the preferred reviewer, run Freebuff from the repository root:
 
 ```bash
 freebuff --cwd <repo>
 ```
+
+With the fallback reviewer, apply the same scope using whatever tool or
+self-review process was chosen in 7.2.
 
 Prefer reviewing the whole repository when practical.
 
@@ -353,9 +360,10 @@ The review MUST consider:
 
 ---
 
-## 7.5 Review prompt
+## 7.4 Review prompt
 
-Use or adapt the following prompt:
+Use or adapt the following prompt, whether running Freebuff or reviewing
+(self- or otherwise) by hand:
 
 ```text
 Review the current repository and the current change batch as a senior
@@ -393,7 +401,7 @@ Do not recommend unrelated refactoring.
 
 Write the final review to:
 
-FREEBUFF_CODE_REVIEW.md
+FREEBUFF_CODE_REVIEW.md   (or CODE_REVIEW.md when Freebuff wasn't used)
 
 Prefer the user's language for the summary.
 ```
@@ -402,17 +410,20 @@ Prefer the user's language for the summary.
 
 # 8. Step 6 — Persist and validate the review
 
-The current review must be represented by:
+The current review must be represented by a written file:
 
 ```text
-FREEBUFF_CODE_REVIEW.md
+FREEBUFF_CODE_REVIEW.md   (Freebuff path)
+CODE_REVIEW.md            (fallback path)
 ```
 
-If Freebuff does not automatically create the file, explicitly instruct it to produce the review there or save the final review output there.
+If the reviewer does not automatically create the file, explicitly write
+the review output there yourself.
 
 IMPORTANT:
 
-An existing `FREEBUFF_CODE_REVIEW.md` does NOT prove that the current batch was reviewed.
+An existing review file does NOT prove that the current batch was
+reviewed.
 
 Verify that the review corresponds to the current code/change batch.
 
@@ -422,7 +433,7 @@ Never use a stale review to satisfy the review gate.
 
 # 9. Step 7 — Verify findings against real code
 
-Freebuff is a reviewer, not an authority.
+The reviewer (Freebuff or the fallback) is a reviewer, not an authority.
 
 Do NOT mechanically implement every suggestion.
 
@@ -502,20 +513,20 @@ repeat until GREEN
 
 # 11. Step 9 — Re-review after review-driven changes
 
-Any meaningful code change made in response to Freebuff must itself pass the review gate.
+Any meaningful code change made in response to a review finding must itself pass the review gate.
 
 Therefore:
 
 ```text
-Solar Pro 4 review
-       ↓
+review
+   ↓
 valid finding
-       ↓
+   ↓
 code change
-       ↓
+   ↓
 tests green
-       ↓
-Solar Pro 4 review AGAIN
+   ↓
+review AGAIN
 ```
 
 Repeat:
@@ -541,7 +552,7 @@ The stopping condition is:
 ```text
 Tests green
 AND
-latest Solar Pro 4 review complete
+latest review complete
 AND
 no remaining sensible finding requires code modification
 ```
@@ -568,17 +579,21 @@ verify EVERY applicable condition below.
 [ ] Appropriate tests were added or updated
 [ ] Regression tests were added for fixed bugs where appropriate
 [ ] Final relevant tests are green
-[ ] Freebuff ran for THIS change batch
-[ ] Solar Pro 4 was used
-[ ] Active model was verified when Freebuff exposes it
-[ ] FREEBUFF_CODE_REVIEW.md represents THIS batch
-[ ] Freebuff findings were verified against real code
+[ ] A code review pass ran for THIS change batch (Freebuff/Solar Pro 4,
+    or the fallback reviewer from 7.2)
+[ ] If Freebuff was used, Solar Pro 4 was the active model (verified)
+[ ] If the fallback reviewer was used instead, that is stated plainly
+    (do not imply Freebuff/Solar Pro 4 reviewed the change when it
+    didn't)
+[ ] The review file (FREEBUFF_CODE_REVIEW.md or CODE_REVIEW.md)
+    represents THIS batch
+[ ] Findings were verified against real code
 [ ] Valid P0/P1 findings were handled
 [ ] Sensible valid P2 findings were handled
 [ ] Review-driven code changes were re-tested
 [ ] Review-driven code changes were re-reviewed
 [ ] Latest tests are green
-[ ] Latest Solar Pro 4 review is complete
+[ ] Latest review pass is complete
 [ ] No remaining sensible finding requires another code change
 [ ] No secrets were added to git
 ```
@@ -596,16 +611,20 @@ DONE
  =
 TESTS GREEN
  AND
-CURRENT-BATCH SOLAR-PRO-4 REVIEW COMPLETE
+CURRENT-BATCH CODE REVIEW COMPLETE (Freebuff/Solar Pro 4 preferred,
+                                     fallback reviewer acceptable)
 ```
 
 ---
 
 # 13. Failure handling
 
-Tooling failure does NOT waive TCDD.
+Tooling failure does NOT waive the review gate — but it also isn't a
+reason to stall on Freebuff setup, since that setup (global npm install,
+interactive login) usually isn't realistic in a sandboxed/CI/cloud
+session.
 
-If Freebuff cannot complete because of:
+If Freebuff isn't already installed and authenticated, or fails because of:
 
 * installation failure;
 * authentication failure;
@@ -617,31 +636,34 @@ If Freebuff cannot complete because of:
 
 then:
 
-1. preserve completed code and test work;
-2. capture the relevant error;
-3. attempt a reasonable fix when safe;
-4. retry;
-5. if still blocked, report the blocker clearly.
+1. don't retry installation/login loops — move straight to the fallback
+   reviewer (7.2);
+2. preserve completed code and test work;
+3. capture the relevant error briefly, for the report;
+4. run the fallback review and record findings as usual.
 
 Do NOT:
 
 ```text
-Freebuff failed
+tests pass
      ↓
-"tests pass, so done"
+"done" (skipping review entirely)
 ```
 
 Instead:
 
 ```text
-Freebuff failed
+Freebuff unavailable
      ↓
-TCDD INCOMPLETE
+fallback review (7.2)
+     ↓
+DONE (review gate satisfied via fallback)
 ```
 
 Never fabricate a review.
 
-Never claim Solar Pro 4 reviewed code when it did not.
+Never claim Freebuff/Solar Pro 4 reviewed code when it did not — say
+explicitly which reviewer was actually used.
 
 ---
 
@@ -664,7 +686,7 @@ HOTFIX
   ↓
 TEST
   ↓
-FREEBUFF / SOLAR PRO 4
+CODE REVIEW (Freebuff/Solar Pro 4 preferred, fallback OK)
   ↓
 VERIFY / FIX
   ↓
@@ -711,8 +733,8 @@ Tests:
 - baseline result
 - final result
 
-Solar Pro 4 review:
-- review completed
+Code review:
+- reviewer used (Freebuff/Solar Pro 4, or fallback — name which)
 - important findings
 - fixes applied
 - findings intentionally rejected, if relevant
@@ -751,8 +773,9 @@ Are the latest tests green?
 
 AND
 
-Did Solar Pro 4 review the current batch after the latest meaningful
-code changes?
+Did a reviewer (Freebuff/Solar Pro 4 preferred, fallback reviewer
+acceptable) review the current batch after the latest meaningful code
+changes?
 ```
 
 If either answer is NO:
